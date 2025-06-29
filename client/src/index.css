@@ -1,0 +1,54 @@
+/* src/index.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f1f2f6;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 800px;
+  width: 90%;
+}
+
+.comparison {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.comparison-card {
+  flex: 1;
+  background: #f0f0f0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.close-button,
+.compare-button,
+.select-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #1e90ff;
+  color: white;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}

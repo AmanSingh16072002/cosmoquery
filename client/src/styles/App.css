@@ -1,0 +1,31 @@
+.app-container {
+  text-align: center;
+  margin-top: 100px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #2c3e50;
+}
+
+p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.start-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  margin-top: 20px;
+  cursor: pointer;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.start-btn:hover {
+  background-color: #357ab8;
+}
