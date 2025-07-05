@@ -4,49 +4,52 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0,0,0,0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
-.modal {
-  background: white;
+.modal-content {
+  background: #fff;
+  color: #000;
   padding: 2rem;
-  border-radius: 10px;
-  max-width: 600px;
+  border-radius: 1rem;
   width: 90%;
+  max-width: 800px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  overflow-x: auto;
+  position: relative;
 }
 
-.comparison-table {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.row {
-  display: contents;
-}
-
-.row div {
-  padding: 0.5rem;
-  border-bottom: 1px solid #ccc;
-  font-size: 14px;
-}
-
-.row.header div {
-  font-weight: bold;
-  background-color: #f0f0f0;
-}
-
-.close-button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: white;
+.close-btn {
+  position: absolute;
+  right: 20px;
+  top: 20px;
   border: none;
-  border-radius: 5px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
   cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.diff {
+  background-color: #fff9c4;
+  font-weight: bold;
 }

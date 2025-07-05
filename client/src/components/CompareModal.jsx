@@ -1,41 +1,59 @@
 import React from "react";
-import "./CompareModal.css"; // You’ll add styling soon
+import "./CompareModal.css";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 const CompareModal = ({ satellites, onClose }) => {
-  if (satellites.length !== 2) return null;
+  if (!satellites || satellites.length !== 2) return null;
 
   const [sat1, sat2] = satellites;
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>Satellite Comparison</h2>
-        <div className="comparison-table">
-          <div className="row header">
-            <div>Property</div>
-            <div>{sat1.name}</div>
-            <div>{sat2.name}</div>
-          </div>
-          <div className="row">
-            <div>Launch Date</div>
-            <div>{sat1.launchDate}</div>
-            <div>{sat2.launchDate}</div>
-          </div>
-          <div className="row">
-            <div>Status</div>
-            <div>{sat1.status}</div>
-            <div>{sat2.status}</div>
-          </div>
-          <div className="row">
-            <div>Orbit Type</div>
-            <div>{sat1.orbitType}</div>
-            <div>{sat2.orbitType}</div>
-          </div>
-        </div>
-        <button className="close-button" onClick={onClose}>Close</button>
-      </div>
-    </div>
+  const formatValue = (label, val1, val2) => (
+    <tr>
+      <td><strong>{label}</strong></td>
+      <td className={val1 !== val2 ? "diff" : ""}>{val1 || "N/A"}</td>
+      <td className={val1 !== val2 ? "diff" : ""}>{val2 || "N/A"}</td>
+    </tr>
   );
-};
 
+    return (
+  <AnimatePresence>
+    <motion.div
+      className="modal-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="modal-content"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h2>🛰️ Satellite Comparison</h2>
+        <button className="close-btn" onClick={onClose}>X</button>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>{sat1.name}</th>
+              <th>{sat2.name}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formatValue("Agency", sat1.agency, sat2.agency)}
+            {formatValue("Orbit Type", sat1.orbitType, sat2.orbitType)}
+            {formatValue("Status", sat1.status, sat2.status)}
+            {formatValue("Launch Date", sat1.launchDate, sat2.launchDate)}
+            {formatValue("Purpose", sat1.purpose, sat2.purpose)}
+            {formatValue("Duration", sat1.duration, sat2.duration)}
+            {formatValue("Country", sat1.country, sat2.country)}
+          </tbody>
+        </table>
+      </motion.div>
+    </motion.div>
+  </AnimatePresence>
+);
+};   
 export default CompareModal;

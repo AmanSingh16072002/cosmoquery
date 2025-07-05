@@ -52,3 +52,8 @@ body {
   border-radius: 0.5rem;
   cursor: pointer;
 }
+
+/* Smooth color transition for dark/light mode */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

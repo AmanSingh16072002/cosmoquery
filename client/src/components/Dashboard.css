@@ -300,3 +300,15 @@ h2 {
   background-color: #ccc;
   cursor: not-allowed;
 }
+.satellite-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+.no-results {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 2rem;
+}

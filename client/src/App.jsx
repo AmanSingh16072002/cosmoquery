@@ -1,14 +1,19 @@
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
-// import SatelliteDetails from "./components/SatelliteDetails"; // If missing, leave it commented
+import Footer from './components/Footer';
+// import SatelliteDetails from "./components/SatelliteDetails"; // Optional
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />} />
-      {/* <Route path="/satellite/:id" element={<SatelliteDetails />} /> */}
-    </Routes>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        {/* <Route path="/satellite/:id" element={<SatelliteDetails />} /> */}
+      </Routes>
+    </Router>
   );
 }
+
+
 
 export default App;
