@@ -82,3 +82,5 @@ You're now ready to deploy on **Vercel** (easiest for React).
 4. Once deployed, copy the live link and update your README:
    ```md
    > Live Demo: [https://cosmoquery.vercel.app](https://cosmoquery.vercel.app)
+
+# Triggering redeploy
