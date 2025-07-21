@@ -3,7 +3,7 @@
   --card-bg: #1b2230;
   --primary-color: #00bcd4;
   --text-color: #ffffff;
-  --secondary-text: #bbbbbb;
+  --secondary-text: #dddddd; /* Improved for readability */
   --selected-color: #2e3a59;
   --danger-color: #ff4081;
   --border-radius: 12px;
@@ -19,6 +19,7 @@ body {
   color: var(--text-color);
 }
 
+/* Fade-in animation for dashboard */
 .dashboard-container {
   padding: 2rem;
   max-width: 1200px;
@@ -32,6 +33,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Headings */
 h2 {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -39,6 +41,7 @@ h2 {
   font-size: 1.8rem;
 }
 
+/* Filters */
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -51,13 +54,20 @@ h2 {
 .filters select,
 .filters button {
   padding: 0.5rem 1rem;
+  min-width: 180px;
+  font-size: 1rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--selected-color);
-  font-size: 1rem;
   background-color: var(--card-bg);
   color: var(--text-color);
-  min-width: 180px;
   transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.filters input:focus,
+.filters select:focus,
+.filters button:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .filters button {
@@ -74,17 +84,13 @@ h2 {
 
 .reset-button {
   background-color: var(--danger-color);
-  color: #fff;
 }
 
 .reset-button:hover {
   background-color: #e91e63;
 }
 
-.compare-button:hover {
-  transform: scale(1.05);
-}
-
+/* Satellite Cards */
 .satellite-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -102,8 +108,8 @@ h2 {
 }
 
 .satellite-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  transform: scale(1.03) translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
 .satellite-card h3 {
@@ -118,6 +124,7 @@ h2 {
   margin: 6px 0;
 }
 
+/* Details Panel */
 .satellite-details-panel {
   position: fixed;
   top: 0;
@@ -158,6 +165,7 @@ h2 {
   color: var(--danger-color);
 }
 
+/* Loading and Error */
 .loading-text,
 .error-text {
   text-align: center;
@@ -181,6 +189,7 @@ h2 {
   100% { opacity: 0.3; }
 }
 
+/* Footer */
 .footer {
   text-align: center;
   padding: 1rem;
@@ -190,21 +199,7 @@ h2 {
   border-top: 1px solid #333;
 }
 
-@media screen and (max-width: 768px) {
-  .dashboard-container {
-    padding: 1rem;
-  }
-
-  .satellite-details-panel {
-    width: 100%;
-  }
-
-  .filters {
-    flex-direction: column;
-    align-items: center;
-  }
-}
-/* Animate the pie chart appearance */
+/* Charts */
 .recharts-pie {
   transform: scale(0.8);
   opacity: 0;
@@ -218,13 +213,11 @@ h2 {
   }
 }
 
-/* Adjust label font */
 .recharts-layer text {
   font-size: 0.85rem;
   fill: var(--text-color);
 }
 
-/* Chart wrapper for padding/alignment */
 .chart-section {
   display: flex;
   flex-direction: column;
@@ -246,18 +239,11 @@ h2 {
   margin-bottom: 1rem;
   font-weight: bold;
 }
-.satellite-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 
-.satellite-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
-}
-
+/* Loader */
 .loader {
   border: 5px solid #f3f3f3;
-  border-top: 5px solid #00bcd4;
+  border-top: 5px solid var(--primary-color);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -269,16 +255,8 @@ h2 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.filters select,
-.filters input,
-.filters button {
-  margin: 6px;
-  padding: 8px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
 
+/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -288,27 +266,53 @@ h2 {
 }
 
 .pagination button {
-  padding: 6px 12px;
+  padding: 0.5rem 1rem;
   background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: scale(1.05);
 }
 
 .pagination button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
-.satellite-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem;
-}
+
+/* No Results */
 .no-results {
   text-align: center;
   color: #888;
   font-style: italic;
   padding: 2rem;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .satellite-details-panel {
+    width: 100%;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

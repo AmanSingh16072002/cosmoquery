@@ -1,16 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getSatellites } from "../services/satelliteService";
 import "./Dashboard.css";
 import CompareModal from "./CompareModal";
-import {
-  PieChart, Pie, Tooltip, Cell,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
-} from 'recharts';
 import ColorModeToggle from "./ColorModeToggle";
 import OrbitChart from './OrbitChart';
 import AgencyBarChart from './AgencyBarChart';
 import Footer from "./Footer";
+
+// 🛰️ Helper: Orbit Type Detection
+function getOrbitType(satellite) {
+  const name = satellite.OBJECT_NAME?.toLowerCase() || "";
+
+  if (name.includes("geo")) return "GEO";
+  if (name.includes("leo")) return "LEO";
+  if (name.includes("meo")) return "MEO";
+  if (name.includes("heosat") || name.includes("elliptical")) return "HEO";
+  if (name.includes("polar")) return "Polar";
+
+  // Random fallback for demo purposes
+  const orbits = ["LEO", "GEO", "MEO", "Polar", "HEO"];
+  return orbits[Math.floor(Math.random() * orbits.length)];
+}
+
+// 🛰️ Agency guesser
+function guessAgency(name) {
+  name = name.toUpperCase();
+
+  if (name.includes("ISS") || name.includes("NASA") || name.includes("STARLINK")) return "NASA";
+  if (name.includes("IRNSS") || name.includes("RISAT") || name.includes("INSAT") || name.includes("GSAT")) return "ISRO";
+  if (name.includes("COSMOS") || name.includes("GLONASS") || name.includes("PROGRESS")) return "Roscosmos";
+  if (name.includes("BEIDOU") || name.includes("TIANZHOU") || name.includes("YAOGAN")) return "CNSA";
+  if (name.includes("GALILEO")) return "ESA";
+  if (name.includes("ONEWEB")) return "OneWeb";
+  if (name.includes("NAVSTAR")) return "USAF";
+  return "Unknown";
+}
 
 const Dashboard = () => {
   const [selectedSatellite, setSelectedSatellite] = useState(null);
@@ -27,6 +51,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // ✅ Reset Filters
   const handleResetFilters = () => {
     setSearchTerm("");
     setOrbitFilter("All");
@@ -35,71 +60,117 @@ const Dashboard = () => {
     setSortBy("name-asc");
   };
 
+  // ✅ Fetch Satellites from API
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSatellites = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const sats = await getSatellites();
-        setSatellites(sats);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching satellites:", err);
-        setError("Failed to load satellite data.");
+        const response = await fetch(API_URL);
+
+        if (!response.ok) throw new Error("Failed to fetch satellites");
+        const data = await response.json();
+
+        const mappedSatellites = data.map((sat) => {
+          const orbitType = getOrbitType(sat);
+          const agency = guessAgency(sat.OBJECT_NAME);
+          const country = agency === "NASA" ? "USA" :
+                          agency === "ISRO" ? "India" :
+                          agency === "Roscosmos" ? "Russia" :
+                          agency === "CNSA" ? "China" :
+                          agency === "ESA" ? "Europe" :
+                          agency === "OneWeb" ? "UK" :
+                          agency === "USAF" ? "USA" : "Unknown";
+
+          return {
+            id: sat.NORAD_CAT_ID,
+            name: sat.OBJECT_NAME,
+            launchDate: sat.EPOCH || "Unknown",
+            status: "Active",
+            orbitType,
+            agency,
+            country,
+            purpose: "N/A",
+            duration: "N/A"
+          };
+        });
+
+        setSatellites(mappedSatellites);
+      } catch (error) {
+        console.error("Failed to fetch satellites:", error);
+        setError("Unable to load satellites. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+
+    fetchSatellites();
   }, []);
 
-  const filteredSatellites = satellites.filter((sat) => {
-    const matchesSearch = sat.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesOrbit = orbitFilter === "All" || sat.orbitType === orbitFilter;
-    const matchesStatus = statusFilter === "All" || sat.status === statusFilter;
-    const matchesAgency = agencyFilter === "All" || sat.agency === agencyFilter;
-    return matchesSearch && matchesOrbit && matchesStatus && matchesAgency;
-  });
+  // ✅ Reset pagination on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, orbitFilter, statusFilter, agencyFilter]);
 
-  const uniqueAgencies = ["All", ...new Set(satellites.map(sat => sat.agency).filter(Boolean))];
+  // ✅ Filter satellites
+  const filteredSatellites = useMemo(() => {
+    return satellites.filter((sat) => {
+      const matchesSearch = sat.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesOrbit = orbitFilter === "All" || sat.orbitType === orbitFilter;
+      const matchesStatus = statusFilter === "All" || sat.status === statusFilter;
+      const matchesAgency = agencyFilter === "All" || sat.agency === agencyFilter;
+      return matchesSearch && matchesOrbit && matchesStatus && matchesAgency;
+    });
+  }, [satellites, searchTerm, orbitFilter, statusFilter, agencyFilter]);
 
-  const sortedSatellites = [...filteredSatellites].sort((a, b) => {
-    switch (sortBy) {
-      case "name-asc":
-        return a.name.localeCompare(b.name);
-      case "name-desc":
-        return b.name.localeCompare(a.name);
-      case "launchDate-asc":
-        return new Date(a.launchDate) - new Date(b.launchDate);
-      case "launchDate-desc":
-        return new Date(b.launchDate) - new Date(a.launchDate);
-      default:
-        return 0;
-    }
-  });
+  // ✅ Unique agencies
+  const uniqueAgencies = useMemo(() => {
+    return ["All", ...new Set(satellites.map((sat) => sat.agency).filter(Boolean))];
+  }, [satellites]);
 
-  const orbitChartData = filteredSatellites.reduce((acc, sat) => {
-    const orbit = sat.orbitType || "Unknown";
-    const existing = acc.find((item) => item.name === orbit);
-    if (existing) {
-      existing.value += 1;
-    } else {
-      acc.push({ name: orbit, value: 1 });
-    }
+  // ✅ Sort satellites
+  const sortedSatellites = useMemo(() => {
+    return [...filteredSatellites].sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc": return a.name.localeCompare(b.name);
+        case "name-desc": return b.name.localeCompare(a.name);
+        case "launchDate-asc": return new Date(a.launchDate) - new Date(b.launchDate);
+        case "launchDate-desc": return new Date(b.launchDate) - new Date(a.launchDate);
+        default: return 0;
+      }
+    });
+  }, [filteredSatellites, sortBy]);
+
+  // ✅ Orbit Chart Data
+  const orbitChartData = useMemo(() => {
+    return filteredSatellites.reduce((acc, sat) => {
+      const orbit = sat.orbitType || "Unknown";
+      const existing = acc.find((item) => item.name === orbit);
+      if (existing) existing.value += 1;
+      else acc.push({ name: orbit, value: 1 });
+      return acc;
+    }, []);
+  }, [filteredSatellites]);
+
+  // ✅ Agency Chart Data
+  const agencyCounts = filteredSatellites.reduce((acc, sat) => {
+    const agency = sat.agency || "Unknown";
+    acc[agency] = (acc[agency] || 0) + 1;
     return acc;
-  }, []);
+  }, {});
+  const agencyChartData = Object.entries(agencyCounts).map(([agency, count]) => ({ name: agency, count }));
 
+  // ✅ Pagination
   const totalPages = Math.ceil(sortedSatellites.length / itemsPerPage);
-  const paginatedSatellites = sortedSatellites.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedSatellites = sortedSatellites.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
+  // ✅ Satellite selection for compare
   const toggleSelectSatellite = (satellite) => {
     const exists = selectedSatellites.find((s) => s.id === satellite.id);
     if (exists) {
@@ -108,20 +179,6 @@ const Dashboard = () => {
       setSelectedSatellites([...selectedSatellites, satellite]);
     }
   };
-
-  const agencyCounts = filteredSatellites.reduce((acc, sat) => {
-    const agency = sat.agency || "Unknown";
-    acc[agency] = (acc[agency] || 0) + 1;
-    return acc;
-  }, {});
-
-  const agencyChartData = Object.entries(agencyCounts).map(([agency, count]) => ({
-    name: agency,
-    count,
-  }));
-
-  console.log("Orbit chart data:", orbitChartData);
-
 
   return (
     <div className="dashboard-container">
@@ -132,6 +189,7 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
+          {/* ✅ Header */}
           <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1>🛰️ Satellite Dashboard</h1>
             <ColorModeToggle />
@@ -139,6 +197,7 @@ const Dashboard = () => {
 
           <p>Total Satellites: {satellites.length}</p>
 
+          {/* ✅ Filters */}
           <div className="filters">
             <input
               type="text"
@@ -178,6 +237,7 @@ const Dashboard = () => {
 
           {loading && <div className="loader"></div>}
 
+          {/* ✅ Satellite List */}
           <div className="satellite-list">
             <AnimatePresence>
               {paginatedSatellites.length > 0 ? (
@@ -222,24 +282,22 @@ const Dashboard = () => {
             </AnimatePresence>
           </div>
 
+          {/* ✅ Pagination */}
           <div className="pagination">
             <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>Prev</button>
             <span>Page {currentPage} of {totalPages}</span>
             <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
           </div>
 
-        
-
-        <div className="chart-section">
-          <h3>Satellites by Orbit Type</h3>
-          
-
-            <OrbitChart data={orbitChartData} />
-        </div>
-
+          {/* ✅ Charts */}
+          <div className="chart-section">
+            <h3>Satellites by Orbit Type</h3>
+            <OrbitChart key={JSON.stringify(orbitChartData)} data={orbitChartData} />
+          </div>
 
           <AgencyBarChart data={agencyChartData} />
 
+          {/* ✅ Details Panel */}
           <div className={`satellite-details-panel ${selectedSatellite ? "visible" : ""}`}>
             {selectedSatellite && (
               <div className="satellite-details-content">
@@ -249,19 +307,22 @@ const Dashboard = () => {
                 <p><strong>Status:</strong> {selectedSatellite.status}</p>
                 <p><strong>Orbit Type:</strong> {selectedSatellite.orbitType}</p>
                 <p><strong>Agency:</strong> {selectedSatellite.agency || "Unknown"}</p>
-                <p><strong>Country:</strong> {selectedSatellite.country === "USA" ? "🇺🇸 USA" : selectedSatellite.country === "India" ? "🇮🇳 India" : selectedSatellite.country || "Unknown"}</p>
+                <p><strong>Country:</strong> {selectedSatellite.country}</p>
                 <p><strong>Purpose:</strong> {selectedSatellite.purpose || "N/A"}</p>
                 <p><strong>Mission Duration:</strong> {selectedSatellite.duration || "N/A"}</p>
               </div>
             )}
           </div>
 
+          {/* ✅ Compare Modal */}
           {showModal && (
             <CompareModal
               satellites={selectedSatellites}
               onClose={() => setShowModal(false)}
             />
           )}
+
+          <Footer />
         </>
       )}
     </div>

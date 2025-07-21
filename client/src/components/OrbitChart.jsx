@@ -6,8 +6,9 @@ const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#0088FE", "#FF6384"
 
 const OrbitChart = ({ data }) => {
   if (!data || data.length === 0) {
-    return <p style={{ color: "gray", textAlign: "center" }}>No orbit data to display.</p>;
+  return <p style={{ color: "gray", textAlign: "center" }}>No orbit data available to display.</p>;
   }
+
 
   return (
     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
