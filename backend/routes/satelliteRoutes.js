@@ -18,7 +18,12 @@ router.get('/seed', async (req, res) => {
     const { data } = await axios.get('https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json');
     await Satellite.deleteMany(); // optional: wipe old data
     await Satellite.insertMany(data);
-     console.log('✅ Successfully seeded', data.length, 'satellites');
+
+     // Emit an event
+    const io = req.app.get("socketio");
+    io.emit("satellitesUpdated", data);
+    
+    console.log('✅ Successfully seeded', data.length, 'satellites');
     res.json({ message: 'Database seeded with live satellite data!' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to seed database' });

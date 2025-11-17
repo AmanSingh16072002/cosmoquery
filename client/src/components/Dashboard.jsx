@@ -6,6 +6,8 @@ import ColorModeToggle from "./ColorModeToggle";
 import OrbitChart from './OrbitChart';
 import AgencyBarChart from './AgencyBarChart';
 import Footer from "./Footer";
+import API_BASE_URL from "../config";
+import { io } from "socket.io-client";
 
 // 🛰️ Helper: Orbit Type Detection
 function getOrbitType(satellite) {
@@ -51,6 +53,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+
   // ✅ Reset Filters
   const handleResetFilters = () => {
     setSearchTerm("");
@@ -60,16 +63,50 @@ const Dashboard = () => {
     setSortBy("name-asc");
   };
 
-  // ✅ Fetch Satellites from API
+  const API_URL = `${API_BASE_URL}/api/satellites`;
+  
+         // ✅ Socket.IO Realtime Updates
+  // ✅ Socket.IO Realtime Updates (disabled in production)
+useEffect(() => {
+  let socket;
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  if (process.env.NODE_ENV !== "production") {
+    socket = io(API_BASE_URL, { transports: ["websocket"] });
 
+    socket.on("connect", () => {
+      console.log("🔗 Connected to Satellite WebSocket");
+    });
+
+    socket.on("satelliteUpdate", (newSat) => {
+      console.log("🛰️ New Satellite Update:", newSat);
+
+      const mapped = mapSatelliteData(newSat);
+
+      setSatellites((prev) => {
+        const exists = prev.some((s) => s.id === mapped.id);
+        return exists
+          ? prev.map((s) => (s.id === mapped.id ? mapped : s))
+          : [mapped, ...prev];
+      });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Disconnected from Satellite WebSocket");
+    });
+  }
+
+  return () => {
+    if (socket) socket.disconnect();
+  };
+}, []);
+
+
+  // ✅ Fetch Satellites
   useEffect(() => {
     const fetchSatellites = async () => {
       setLoading(true);
       try {
         const response = await fetch(API_URL);
-
         if (!response.ok) throw new Error("Failed to fetch satellites");
         const data = await response.json();
 
@@ -97,6 +134,7 @@ const Dashboard = () => {
           };
         });
 
+ 
         setSatellites(mappedSatellites);
       } catch (error) {
         console.error("Failed to fetch satellites:", error);
@@ -107,7 +145,7 @@ const Dashboard = () => {
     };
 
     fetchSatellites();
-  }, []);
+  }, [API_URL]);
 
   // ✅ Reset pagination on filter change
   useEffect(() => {
